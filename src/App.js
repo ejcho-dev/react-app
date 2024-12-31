@@ -1,14 +1,17 @@
 import React, { Component } from 'react';
-import './App.css'
 import Subject from './components/Subject';
 import TOC from './components/TOC';
-import Content from './components/Content';
+import Control from './components/Control';
+import ReadContent from './components/ReadContent';
+import CreateContent from './components/CreateContent';
+import './App.css'
 
 class App extends Component {
   constructor(props) { // 가장 먼저 호출되는 함수 (생성자)
     super(props);
+    this.max_content_id = 3;
     this.state = {
-      mode: 'read',
+      mode: 'create',
       selected_content_id: 2,
       subject: {title: 'WEB', sub: 'World Wide Web!'},
       welcome: {title: 'Welcome', desc: 'Hello, React!!'},
@@ -23,10 +26,11 @@ class App extends Component {
   render() { // props or state 값이 바뀌면 자동으로 재호출된다 --> 화면이 다시 그려진다
     console.log("App render");
     
-    var _title, _desc = null;
+    var _title, _desc, _article = null;
     if (this.state.mode === 'welcome') {
       _title = this.state.welcome.title;
       _desc = this.state.welcome.desc;
+      _article = <ReadContent title={_title} desc={_desc}/>
     } else if (this.state.mode === 'read') {
       var i = 0;
       while (i < this.state.contents.length) {
@@ -38,9 +42,32 @@ class App extends Component {
         }
         i = i + 1;
       }
-    }
+      _article = <ReadContent title={_title} desc={_desc}/>
+    } else if (this.state.mode === 'create') {
+      _article = <CreateContent onSubmit={function(_title, _desc) {
+        this.max_content_id = this.max_content_id + 1;
+        // 원본을 수정하면 shouldComponentUpdate()에서 기존 props와 새로운 props가 동일해서
+        // 값을 비교하여 render()를 선택적으로 할 수 없게 된다
+        // 따라서 원본이 아닌 복사본을 만들어서 setState()를 하는 것이 좋다
+        // this.state.contents.push(
+        //   {id: this.max_content_id, title: _title, desc: _desc}
+        // );
+        // this.setState({contents: this.state.contents});
+        
+        // concat() 사용하기
+        // var _contents = this.state.contents.concat(
+        //   {id: this.max_content_id, title: _title, desc: _desc}
+        // );
+        // this.setState({contents: _contents});
 
-    console.log('render', this);
+        // Array.from() 사용하기 :: 객체인 경우에는 Object.assign() 사용하기
+        var newContents = Array.from(this.state.contents);
+        newContents.push(
+          {id: this.max_content_id, title: _title, desc: _desc}
+        );
+        this.setState({contents: newContents});
+      }.bind(this)}/>
+    }
 
     return (
       <div className="App">
@@ -62,7 +89,10 @@ class App extends Component {
             });
           }.bind(this)}
         />
-        <Content title={_title} desc={_desc}/>
+        <Control onChangeMode={function(_mode) {
+          this.setState({mode: _mode});
+        }.bind(this)}/>
+        {_article}
       </div>
     );
   }
