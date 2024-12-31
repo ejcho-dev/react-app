@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 class CreateContent extends Component {
   render() {
-    console.log("Content render");
+    console.log("CreateContent render");
 
     return (
       <article>
